@@ -1,0 +1,16 @@
+1) Data type consistancy, make sure you are dealing with same datatype
+2) After reading a file and updating to dataset(refer ch3 word to vec skip gram alg, def builddataset(words) to reduce memory usage
+3) Loss alone is not a good metric of accuracy as it might occur due to overfitting.
+Word analogy test can be a good metric.
+More about word analogy test :
+
+Google analogy dataset: http://download.
+tensorflow.org/data/questions-words.txt
+
+Bigger Analogy Test Set (BATS): http://vsm.
+blackbird.pw/bats
+4) Visualisation of higher dim data to lower dim data can be done with the help of TensorBoard
+tensorboard_word_embeddings.ipynb1
+5) CBOW works better in synctactic tasks and skip gram works better in semantic tasks.
+6) Skip gram algorithm works better than CBOW for larger dataset
+7)

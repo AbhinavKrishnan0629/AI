@@ -1,0 +1,1 @@
+NCE: Noise Contrastive Estimation

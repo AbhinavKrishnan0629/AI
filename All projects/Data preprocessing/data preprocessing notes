@@ -1,0 +1,142 @@
+Data quality : accuracy, completeness, consistancy, believability, interpretable, timeliness
+
+disguised missing data : people fill fake data in mandatory fields
+
+factors that affect:
+accuracy - people, data transmission, faulty data collection instruments, technological
+
+Data cleaning: Filling missing values, smoothening noisy values, removing outliers, removing inconsistancies
+
+Data integration
+
+Data tranformation
+
+Data reduction: dimensionality reduction(wavelet transforms, PCA, attribute subset selection, attribute construction),
+                numerosity reduction(data are replace by parametric models(regression or log linear models) or
+                                                     non parametric models(histograms, clusters, sampling, or data
+                                                                             aggregation)
+                                    )
+                
+Data cleaning
+-------------
+Missing values:
+***(ask this question, is this value missing because it was not recorded or because it doesnt exist?)
+
+parameters for 'fillna' function in pandas for filling in missing values :
+{‘backfill’, ‘bfill’, ‘ffill’, None}, default None
+
+1) Ignore the tuple(loss of other attribute data)
+2) Manual data entry(time consuming for large dataset)
+3) Use a global constant to fill the missing places(not foolproof, cause the model would think its some special
+                                 value and derive some other conclusions)
+4) Use of central tendency(mean : symmetric data, median : skewed data distribution)
+5) Prediction of missing values in same class: if the model is for classification task, take mean or median for each                                    class and use this value to fill missing places of corresponding class tuples
+6) Fill in the most probable value: Find it by using regression, Bayesian formalism, Decision tree to find most
+                                 probable value
+
+
+handling outliers:
+1) Visualise outliers
+2) Identify which rows of dataframe has outliers
+3) Implement various strategies to handle outliers
+
+Outlier: a data point three or more times standard deviation from the mean
+Z-score : number of standard deviation a data point is from the mean
+Higher the Z-score, the data point is farther from the mean
+
+
+Noisy data:
+They are some random error or variance in measured variable
+they can be found out by boxplots and scatter plots
+some smoothening techniqes are also data discretization(data transformation) or data reduction
+1) Binning(By bin meadians or boundaries in sorted data values)
+2) Regression
+
+
+
+How to perform data cleaning as a process
+1) Discrepency detection: 
+        Causes: poor data entry forms, human errors, deliberate errors, instrument errors, data integration
+   Study about meta data
+   
+   Data scrubbing tools
+   Data auditing tools
+   Data migration tools
+   ETL(Extraction, Tranforming, Loading)
+   Potter's wheel
+
+
+
+
+Data Integration
+
+Correlation coefficient for numeric data (chi square test)
+Covariance analysis of numeric data      (chi square test)
+
+
+
+
+Data reduction
+
+Attribute subset selection
+Attribute creation
+Discrete Wavelet Transform(DWT)
+Principal Component Analysis(PCA)
+
+Sampling (most commonly used)
+Histogram
+Data Cube Aggregation
+
+
+
+
+
+Data transformation
+
+Smoothing(to remove noise data):
+Binning, Regression, Clustering
+
+Attribute construction:
+
+
+Aggregation:
+
+
+Normalization:Always standardize or normalize the data.
+Especially useful in classification problems
+Types:
+min-max normalization, z-score normalization(performed when min and max are not known) mean absolute deviation is more robust to outliers than standard deviation and while using this method save the mean and standard deviation so that future data can also be standardized uniformly, normalization by decimal scaling
+
+
+Discretization: Entropy is the most commonly used measure
+Categorizing the values
+supervised discretization, unsupervised discretization, split points, cut points, top-down discretization or splitting,
+bottom-up discretization or merging
+ChiMerge technique
+
+
+Concept hierarchy generation for nominal data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

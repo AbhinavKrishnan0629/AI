@@ -1,0 +1,47 @@
+Projects
+--------
+1) Speech emotion detection
+2) Document summarizer
+3) Sign Language
+4) Driverless driving scheme
+5) Skin disease detection
+6) Liver cirrhosis prediction
+7) Text translation
+8) Music generation
+9) Separating instruments from a given song
+10)Spelling and grammar checking
+11)Ticket booking app
+12)Cartoonize an image
+13)Similar image detection
+14)Hand gesture recognition
+15)Traffic signal classification
+
+
+Algorithms
+----------
+Linear models, Naive Bayes classifier, Decision trees, ensembles of decision trees, kernalized support vector machines, Non negative matrix factorization, manifold learning with tsne, agglomerative clustering, DBSCAN, Random Forests, KNN, PCA, Stochastic gradient descent, CNN, RNN, LSTM, one hot encoding, Binning, discretization, Linear models and trees, interactions and polynomials, univariate non linear transformation, automatic feature selection(univariate statistics, model based feature selection, iterative feature selection), cross validation, kfold cross validation, grid search, grid search with cross validation, metrics for binary classification, metrics for multiclass classification, regression metrics, using evaluation metrics in model selection, tf-idf, ROC curve, rescaling, tokenization, stemming, lemmatization, Latent dirichlet allocation
+
+NLP Large models (GPT 4, BERT, ELMO, RoBERTa, T5, ALBERT, XLNet, MobileBERT, CTRL, GShard, Flair)
+CV Large models (SIFT, SURF, Viola Jones, Eigen faces using PCA, Lucas Kanade, Kalman filter, Mean shift,
+                  Adaptive thresholding, Graph cut, YOLO)
+
+(1 algorithm per week, in total this would take 70 weeks = 17 months = 1 year 5 months)
+
+Phases
+------
+Data downloading, Data preprocessing, Defining model, Feature engineering, Evaluation and improvement, Algorithm 
+chains and pipelining
+
+
+
+
+
+
+
+
+
+
+
+
+
+

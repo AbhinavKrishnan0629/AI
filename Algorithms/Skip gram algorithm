@@ -1,0 +1,571 @@
+                                                Skip gram algorithm
+                                                -------------------
+
+Aim
+---
+To implement skip gram algorithm on a specific file and plot a graph showing similar words marked together
+
+Theory
+------
+Introduced by Mikolov and others in 2013
+The dataset should be preprocessed such that it be fed into the model in format: (input, output)
+The dataset should be prepared without any human involvement, thus unsupervised method should be implemented.
+This can be done in a way:
+1)Capture the words surrounding the given word
+2)Perform in an unsupervised way
+
+For a given word wi, a context window size m is assumed. By context window size, we mean the number of words considered as context on a single side. Therefore, for wi, the context window (including the target word wi) will be 
+of size 2m+1 and will look like this: [wi-m, …, wi-1, wi, wi+1, …, wi+m].
+Next, input-output tuples are formed as […, (wi, wi-m), …,(wi,wi-1), (wi,wi+1), …, (wi,wi+m), …]; here, m 1+ ≤ ≤i N − m and N is the number of words in the text to get a practical insight. Let's assume the following sentence and context 
+window size (m) of 1:The dog barked at the mailman.
+For this example, the dataset would be as follows:
+[(dog, The), (dog, barked), (barked, dog), (barked, at), …, (the, at), (the, mailman)]
+
+Now we need to build word embeddings
+To store word embeddings, we need a V*D matrix(embedding space or embedding layer) (V: Vocabulary size, D: User defined dimensionality)
+
+• V: This is the size of the vocabulary
+• D: This is the dimensionality of the embedding layer
+• xi: This is the ith input word represented as a one-hot-encoded vector
+• zi: This is the embedding (that is, representation) vector corresponding to the ith input word
+• yi: This is the one-hot-encoded output word corresponding to xi
+• ŷi: This is the predicted output for xi
+• logit(xi): This is the unnormalized score for the input xi
+• wj I : This is the one-hot-encoded representation for word wj
+• W: This is the softmax weight matrix
+• b: This is the bias of the softmax
+
+Defining loss function
+1) Negative sampling
+2) Hierarchial softmax
+
+Negative sampling:
+its a method of Noise Contrastive Estimation(NCE)(a good model should group a data and noise just by logistic regression)
+Hierarchial softmax:
+a binary tree is formed, all the leaf nodes as each word of vocabulary
+the weights on each path is then calculated accordingly
+and these weights will be used for rest of calculation of output word given an input word
+
+optimization:
+stochastic optimization process
+
+Program
+-------
+#SKIP GRAM ALGORITHM
+# These are all the modules we'll be using later. Make sure you can import them
+# before proceeding further.
+%matplotlib inline
+import collections
+import math
+import numpy as np
+import os
+import random
+import tensorflow.compat.v1 as tf
+import bz2
+from matplotlib import pylab
+from six.moves import range
+from six.moves.urllib.request import urlretrieve
+from sklearn.manifold import TSNE
+from sklearn.cluster import KMeans
+import nltk # standard preprocessing
+import operator # sorting items in dictionary by value
+#nltk.download() #tokenizers/punkt/PY3/english.pickle
+from math import ceil
+import csv
+
+#downloading and preparing the dataset
+print("Importing libraries complete")
+url = 'http://www.evanjones.ca/software/'
+
+def maybe_download(filename, expected_bytes):
+    if not os.path.exists(filename):
+        print("Downloading:", filename)
+        filename, _ = urlretrieve(url+filename, filename)
+    statinfo = os.stat(filename)
+    if statinfo.st_size == expected_bytes:
+        print("Document verified")
+    else:
+        raise Exception("Failed to verify:", filename)
+    return filename
+
+filename = maybe_download('wikipedia2text-extracted.txt.bz2', 18377035)
+    
+    
+def read_data(filename):
+    with bz2.BZ2File(filename) as f:
+        statinfo = os.stat(filename)
+        file_size = statinfo.st_size
+        chunk_size = 1024 * 1024 #reading file in chunk size of 1MB
+        data = []
+        for i in range(math.ceil(file_size//chunk_size)+1):
+            bytes_to_read = min(chunk_size, file_size-(i*chunk_size))
+            file_string = f.read(bytes_to_read).decode('utf-8')
+            file_string = file_string.lower()
+            file_tokens = nltk.word_tokenize(file_string)
+            data.extend(file_tokens)
+    return data
+
+print("Data is read")
+words = read_data(filename)
+print("words:", words[:10])
+
+import collections
+
+vocabulary_size = 50000
+
+#building data, count, dictionary, reverse_dictionary
+
+def build_dataset(words):
+    count = [["UNK", -1]]
+    count.extend(collections.Counter(words).most_common(vocabulary_size - 1))
+    dictionary = {}
+    for word, _ in count:
+        if word not in dictionary:
+            dictionary[word] = len(dictionary)
+    reverse_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
+    data = list()
+    unk_count = 0
+    for word in words:
+        if word in dictionary:
+            index = dictionary[word]
+        else:
+            index = -1
+        if index == -1:
+            unk_count += 1
+        else:
+            data.append(index)
+    count[0][1] = unk_count
+    assert len(dictionary) == vocabulary_size
+    return data, count, dictionary, reverse_dictionary
+
+data, count, dictionary, reverse_dictionary = build_dataset(words)
+print("Dataset is built")
+print("data:", data[:10])
+print("count:", count[:10])
+
+del words    
+    
+data_index = 0
+
+def generate_batches_labels(batch_size, window_size):
+    global data_index
+    batches = np.ndarray(shape=(batch_size), dtype=np.int32)
+    labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
+    span = 2*window_size + 1
+    buffer = collections.deque(maxlen=span)
+    for _ in range(span):
+        buffer.append(data[data_index])
+        data_index = (data_index+1)%len(data)
+    num_samples = 2*window_size
+    for i in range(batch_size//num_samples):
+        k = 0
+        for j in (list(list(range(window_size))+list(range(window_size+1, 2*window_size+1)))):
+            batches[i*num_samples+k] = buffer[window_size]
+            labels[i*num_samples + k, 0] = buffer[j]
+            k += 1
+        buffer.append(data[data_index])
+        data_index = (data_index+1)%len(data)
+    return batches, labels
+print("Batches are generated")
+print("Data:", [reverse_dictionary[bi] for bi in data[:8]])
+
+for winsiz in [1, 2]:
+    data_index = 0
+    batch, label = generate_batches_labels(8, winsiz)
+    print("window size:", winsiz)
+    print("batch:", [reverse_dictionary[bi] for bi in batch])
+    print("batch:", [reverse_dictionary[li] for li in label.reshape(8)])
+
+#Defining hyperparameters and constants
+
+batch_size = 128
+embedding_size = 128
+window_size = 4
+
+valid_size = 16
+valid_window = 50
+
+valid_examples = np.array(random.sample(range(valid_window), valid_size))
+valid_examples = np.append(valid_examples, random.sample(range(1000, 1000+valid_window), valid_size), axis=0)
+
+num_sampled = 32    
+
+print("--->Hyperparameters and constants are defined")
+
+tf.reset_default_graph()
+tf.disable_eager_execution()
+train_dataset = tf.placeholder(tf.int32, shape=[batch_size])
+train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])
+
+valid_dataset = tf.constant(valid_examples, dtype=tf.int32)
+
+print("--->Training dataset and labels are created")
+    
+embeddings = tf.Variable(tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
+softmax_weights = tf.Variable(tf.truncated_normal
+                              ([vocabulary_size, embedding_size],
+                               stddev=0.5/math.sqrt(embedding_size)))
+softmax_biases = tf.Variable(tf.random_uniform([vocabulary_size], 0.0, 0.01))    
+print("--->embeddings and softmax weights and biases are defined")
+
+embed = tf.nn.embedding_lookup(embeddings, train_dataset)
+
+loss = tf.reduce_mean(tf.nn.sampled_softmax_loss(weights=softmax_weights,
+                                                biases=softmax_biases,
+                                                inputs=embed,
+                                                labels=train_labels,
+                                                num_sampled=num_sampled,
+                                                num_classes=vocabulary_size))
+
+print("--->Loss is defined")
+norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keepdims=True))
+normalized_embeddings = embeddings/norm
+valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings, valid_dataset)
+similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
+
+print("--->Similarity is defined")
+optimizer = tf.train.AdagradOptimizer(1.0).minimize(loss)
+print("--->Optimizer is defined")
+num_steps = 100001
+skip_losses = []
+#configproto is a way to setup configuration
+with tf.Session(config=tf.ConfigProto(allow_soft_placement = True)) as session:
+    #initialise all the variables in graph
+    tf.global_variables_initializer().run()
+    print("Initialised")
+    average_loss = 0
+    #train the word2vec model for num_steps iterations
+    for step in range(num_steps):
+        #generate a single batch of data
+        batch_data, batch_labels = generate_batches_labels(batch_size, window_size)
+        feed_dict = {train_dataset:batch_data, train_labels:batch_labels}
+        _, l = session.run([optimizer, loss], feed_dict=feed_dict)
+        average_loss += l
+        if (step+1) % 2000 == 0:
+            if step > 0:
+                average_loss = average_loss/2000
+                skip_losses.append(average_loss)
+                #average_loss is an estimate of the loss over last 2000 batches
+                print("Average loss in step %d: %f" % (step+1, average_loss))
+                average_loss = 0
+        #evaluating validation set word similarities
+        if (step+1) % 10000 == 0:
+            sim = similarity.eval()
+            #now we compute top k words similar to the given validation word
+            for i in range(valid_size):
+                valid_word = reverse_dictionary[valid_examples[i]]
+                top_k = 8
+                nearest = (-sim[i, :]).argsort()[1:top_k+1]
+                log = "Nearest to %s" % valid_word
+                for k in range(top_k):
+                    close_word = reverse_dictionary[nearest[k]]
+                    log = "%s %s," % (log, close_word)
+                print(log)
+    skip_gram_final_embeddings = normalized_embeddings.eval()
+print("--->Ran skip gram algorithm")
+np.save("skip_embeddings", skip_gram_final_embeddings)
+
+with open("skip_losses.csv", "wt") as f:
+    writer = csv.writer(f, delimiter=',')
+    writer.writerow(skip_losses)
+
+def find_clustered_embeddings(embeddings, distance_threshold, sample_threshold):
+    '''
+    Find only the closely clustered embeddings. 
+    This gets rid of more sparsly distributed word embeddings and make the visualization clearer
+    This is useful for t-SNE visualization
+    
+    distance_threshold: maximum distance between two points to qualify as neighbors
+    sample_threshold: number of neighbors required to be considered a cluster
+    '''
+    #calculating cosine similarity
+    cosine_sim = np.dot(embeddings, np.transpose(embeddings))
+    norm = np.dot(np.sum(embeddings**2,axis=1).reshape(-1,1),np.sum(np.transpose(embeddings)**2,axis=0).reshape(1,-1))
+    assert cosine_sim.shape == norm.shape
+    cosine_sim /= norm
+    np.fill_diagonal(cosine_sim, -1.0)
+    argmax_cos_sim = np.argmax(cosine_sim, axis=1)
+    mod_cos_sim = cosine_sim
+    #find maximums in a loop to count if there are n items above threshold
+    for _ in range(sample_threshold-1):
+        argmax_cos_sim = np.argmax(cosine_sim, axis=1)
+        mod_cos_sim[np.arange(mod_cos_sim.shape[0]), argmax_cos_sim] = -1
+    max_cosine_sim = np.max(mod_cos_sim, axis=1)
+    return np.where(max_cosine_sim > distance_threshold)[0]
+
+num_points = 1000
+tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000)
+print("Fitting embeddings to TSNE, this can take some time")
+selected_embeddings = skip_gram_final_embeddings[: num_points, :]
+two_d_embeddings = tsne.fit_transform(selected_embeddings)
+print("Pruning the Tsne embeddings")
+#prune the embeddings only by getting ones only n-many samples above the similarity threshold
+#this unclutters the visualization
+selected_ids = find_clustered_embeddings(selected_embeddings, .25, 10)
+two_d_embeddings = two_d_embeddings[selected_ids, :]
+print('Out of ', num_points, 'samples ', selected_ids.shape[0], 'were selected by pruning')
+
+def plot(embeddings, labels):
+    n_clusters = 20
+    label_colors = [pylab.cm.get_cmap("Spectral")(float(i) /n_clusters) for i in range(n_clusters)]
+    assert embeddings.shape[0] >= len(labels), 'More labels than embeddings'
+    kmeans = KMeans(n_clusters=n_clusters, init='k-means++', random_state=0).fit(embeddings)
+    kmeans_labels = kmeans.labels_
+    pylab.figure(figsize=(15, 15))
+    for i, (label, klabel) in enumerate(zip(labels, kmeans_labels)):
+        x, y = embeddings[i, :]
+        pylab.scatter(x, y, c=label_colors[klabel])
+        pylab.annotate(label, xy=(x, y), xytext=(5, 2), textcoords='offset points',
+                       ha='right', va='bottom', fontsize=10)
+    # use for saving the figure if needed
+    #pylab.savefig('word_embeddings.png')
+    pylab.show()
+
+words = [reverse_dictionary[i] for i in selected_ids]
+plot(two_d_embeddings, words)
+
+
+Output
+------
+
+Importing libraries complete
+Document verified
+Data is read
+words: ['propaganda', 'is', 'a', 'concerted', 'set', 'of', 'messages', 'aimed', 'at', 'influencing']
+Dataset is built
+data: [1721, 9, 8, 16479, 223, 4, 5168, 4459, 26, 11597]
+count: [['UNK', 68741], ('the', 226895), (',', 184013), ('.', 120913), ('of', 116323), ('and', 88639), ('in', 77804), ('to', 65637), ('a', 58983), ('is', 30858)]
+Batches are generated
+Data: ['propaganda', 'is', 'a', 'concerted', 'set', 'of', 'messages', 'aimed']
+window size: 1
+batch: ['is', 'is', 'a', 'a', 'concerted', 'concerted', 'set', 'set']
+batch: ['propaganda', 'a', 'is', 'concerted', 'a', 'set', 'concerted', 'of']
+window size: 2
+batch: ['a', 'a', 'a', 'a', 'concerted', 'concerted', 'concerted', 'concerted']
+batch: ['propaganda', 'is', 'concerted', 'set', 'is', 'a', 'set', 'of']
+--->Hyperparameters and constants are defined
+--->Training dataset and labels are created
+--->embeddings and softmax weights and biases are defined
+--->Loss is defined
+--->Similarity is defined
+WARNING:tensorflow:From C:\Users\abhin\AppData\Local\Programs\Python\Python310\lib\site-packages\tensorflow\python\training\adagrad.py:138: calling Constant.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+Instructions for updating:
+Call initializer instance with the dtype argument instead of passing it to the constructor
+--->Optimizer is defined
+Initialised
+Average loss in step 2000: 3.984364
+Average loss in step 4000: 3.602304
+Average loss in step 6000: 3.554249
+Average loss in step 8000: 3.515465
+Average loss in step 10000: 3.471067
+Nearest to the ,, and, a, gilmour, ., in, tampere, public-private,
+Nearest to it this, 22.2, eritrea, decorated, he, sweetgum, not, ngurunderi,
+Nearest to were are, and, counteroffensive, denis, estate, holds, positioning, kapa,
+Nearest to , ., on, and, in, the, to, of, by,
+Nearest to in ,, of, ., and, on, by, the, to,
+Nearest to first cladding, housekeeper, bug, five, nationalizing, revolve, bak, manufacturer,
+Nearest to his conservation, insulins, undermines, unnamed, successfully, nonstandard, despots, 55th,
+Nearest to is was, weather-related, coniferous, flutter, hens, alec, quinoa, remembrance,
+Nearest to which kangaroo, magistracy, commute, janszoon, infectious, shakedown, doctrines, organizer,
+Nearest to '' meet, inexperienced, loyal, collaborative, self-taught, farcical, discrimination, squabs,
+Nearest to their pro-life, topiltzin, its, among, anti-government, vocal, vertebrate, dummett,
+Nearest to as contraception, theobald, 1324, illusion, d1, preheating, financiers, 1517,
+Nearest to with to, hunting, of, hoisted, cutters, lock-on, december, seres,
+Nearest to ) isolates, (, 'system, crores, trailer, fatha, penguin, rupees,
+Nearest to city despised, twenty-minute, manafort, marshal, kangaroo, scathing, perforated, interurban,
+Nearest to . ,, and, to, on, of, in, the, iowa,
+Average loss in step 12000: 3.398170
+Average loss in step 14000: 3.405116
+Average loss in step 16000: 3.378027
+Average loss in step 18000: 3.384807
+Average loss in step 20000: 3.345478
+Nearest to the a, of, cultivated, 's, production, sangre, acclaim, all,
+Nearest to it this, he, not, that, there, marijuana, recommendation, perform,
+Nearest to were are, had, was, their, would, overconsumption, swaminathan, bonaparte,
+Nearest to , ., and, a, skies, deed, 900, gunboats, 92.7,
+Nearest to in on, at, for, italics, poems, with, physiocrats, parche,
+Nearest to first five, encloses, likewise, polytheists, spectre, nationalizing, world, manufacturer,
+Nearest to his 's, overthrust, horii, fadeout, her, non-rem, trans, pledging,
+Nearest to is lyme, was, expounded, károlyi, unfolded, has, tended, location,
+Nearest to which that, but, who, 105, hyrule, also, 2|, ms,
+Nearest to '' ``, seeger, |apr_rec_lo_°c, cushitic, martinique, justices, started, a,
+Nearest to their 57, were, anti-government, seres, its, secretions, extreme, crafts,
+Nearest to as also, for, sardonic, horoscopy, tractatus, expiry, crisp, quinton,
+Nearest to with for, radiotherapy, eisbock, in, sillanpää, prophetic, wedderburn, fundraising,
+Nearest to ) (, rensselaer, cruithne, jig, or, also, shareholdings, chemist,
+Nearest to city devil, twenty-minute, number, kangaroo, superlative, actus, despised, |mar_rec_lo_°c,
+Nearest to . ,, taming, for, that, and, come, micronesia, landtag,
+Average loss in step 22000: 3.328968
+Average loss in step 24000: 3.360551
+Average loss in step 26000: 3.344684
+Average loss in step 28000: 3.347990
+Average loss in step 30000: 3.354603
+Nearest to the of, and, ,, a, in, ., s.g., its,
+Nearest to it this, be, not, able, they, begs, should, goebbels,
+Nearest to were are, had, their, cryptographically, restoration, bonaparte, would, intimates,
+Nearest to , ., the, (, and, in, by, of, to,
+Nearest to in of, ,, shalt, and, the, during, from, zhongguo,
+Nearest to first reviews, redeeming, gentrification, sentient, sunnier, gammon, world, calypso-like,
+Nearest to his 's, her, he, fidel, imperialist, aridity, their, fcu,
+Nearest to is was, has, expounded, are, undertow, ellipsoid, acre, hurriedly,
+Nearest to which but, slaughtering, ntsc, where, hillsides, protestants, anthracite, knees,
+Nearest to '' doublet, ``, stunned, complicating, ron, youtube, genealogies, seeger,
+Nearest to their were, 57, they, its, these, exonerated, undesired, 1975.,
+Nearest to as 302, horoscopy, should, also, mogadishu, ziembicki, sunnah, apuleius,
+Nearest to with to, from, and, into, prophetic, for, grudgingly, acrobatics,
+Nearest to ) ridged, ,, 50, declination, pyrite, the, multi-national, luzhkov,
+Nearest to city twenty-minute, air-conditioned, publisher, devil, marshal, nuncio, genome, vertex,
+Nearest to . ,, of, and, the, naive, conaill, to, wearing,
+Average loss in step 32000: 3.337557
+Average loss in step 34000: 3.296681
+Average loss in step 36000: 3.313194
+Average loss in step 38000: 3.317883
+Average loss in step 40000: 3.322692
+Nearest to the a, ., its, ,, 's, state, of, and,
+Nearest to it this, he, not, carcasses, believe, inside-the-park, refine, naomi,
+Nearest to were are, their, have, was, adventurous, bitterroots, independently, purposeful,
+Nearest to , ., and, (, the, of, in, 40.4, births,
+Nearest to in of, ., ,, during, worse, civil, and, pingpu,
+Nearest to first after, was, focused, polytheists, obscurantism, piles, corticosteroids, sane,
+Nearest to his her, 's, their, he, anguilla, loyalist, armchair, pictland,
+Nearest to is are, was, has, assimilated, toriyama, response, p.m., butch,
+Nearest to which slaughtering, prevent, and, –5, francesco, but, anthracite, dutiful,
+Nearest to '' complicating, ``, vc, youtube, called, ', ;, !,
+Nearest to their his, were, 57, infancy, undesired, 1975., these, exonerated,
+Nearest to as ziembicki, rivinus, also, items, known, drowning, canes, 65.7,
+Nearest to with and, for, internecine, ritualistic, over, or, by, miguel,
+Nearest to ) (, or, quarantine, million, allusion, see, realizing, ,,
+Nearest to city state, located, south, federalists, air-conditioned, democratic, near, university,
+Nearest to . ,, and, (, the, in, of, that, for,
+Average loss in step 42000: 3.321291
+Average loss in step 44000: 3.311795
+Average loss in step 46000: 3.326752
+Average loss in step 48000: 3.272941
+Average loss in step 50000: 3.273121
+Nearest to the a, ,, its, his, 's, and, an, forty-five,
+Nearest to it he, this, not, drastic, but, there, only, torinese,
+Nearest to were are, had, was, their, have, breeder, did, purposeful,
+Nearest to , ., the, on, in, was, 1620, 2006, (,
+Nearest to in on, ,, from, 1942, ), cross-country, majority, during,
+Nearest to first when, rangers, after, ile, that, denunciations, jambi, liberians,
+Nearest to his her, 's, their, fidel, the, 57, he, ref,
+Nearest to is was, are, became, p.m., timor-leste, contains, lyme, three-part,
+Nearest to which that, but, only, ;, where, afghanistan, while, steamer,
+Nearest to '' !, :, bodyguard, bactrian, accountants, i, tdi, 1993,
+Nearest to their its, his, them, these, were, they, restarted, or,
+Nearest to as or, mogadishu, once, also, casualties, identification, often, for,
+Nearest to with and, while, between, or, for, commonality, eisbock, through,
+Nearest to ) in, yixian, fifths, %, threatens, (, disproportionate, cancelled,
+Nearest to city south, located, near, coast, nation, district, carbonated, most,
+Nearest to . ,, ;, sixty-eight, on, juneteenth, bi, congonhas, microcephalic,
+Average loss in step 52000: 3.285727
+Average loss in step 54000: 3.292406
+Average loss in step 56000: 3.260015
+Average loss in step 58000: 3.301932
+Average loss in step 60000: 3.284601
+Nearest to the a, ,, and, ., its, in, 's, hulke,
+Nearest to it this, he, cato, kumano, fifth-largest, reprised, not, bolshevik,
+Nearest to were are, was, had, elasticity, radetsky, other, nominative/accusative, two,
+Nearest to , and, ., in, the, from, calculates, oahu, potency,
+Nearest to in of, from, ,, and, since, national, shalt, the,
+Nearest to first liberians, kj, following, 180,000., likewise, second, anne, shaman,
+Nearest to his her, 's, their, he, its, invaluable, npa, hastati,
+Nearest to is was, are, has, area, |jul_rec_lo_°f, of, bosniaks, surged,
+Nearest to which while, but, where, ;, although, pollination, who, that,
+Nearest to '' ``, i, catalytic, structurally, du, 1924., right-hand, perthshire,
+Nearest to their its, her, his, secretions, undesired, them, vocal, order,
+Nearest to as also, headings, arboreal, startling, fayth, satirize, packet, romanesque,
+Nearest to with between, supersport, and, of, by, kadriorg, kertosudiro, over,
+Nearest to ) see, km, :, (, ``, catered, automakers, blackfoot,
+Nearest to city nation, state, south, located, largest, district, country, university,
+Nearest to . ,, and, that, ;, of, the, 107, congonhas,
+Average loss in step 62000: 3.265589
+Average loss in step 64000: 3.281356
+Average loss in step 66000: 3.264073
+Average loss in step 68000: 3.232174
+Average loss in step 70000: 3.277972
+Nearest to the ,, and, in, of, ., a, 's, culmination,
+Nearest to it this, only, encyclopedia, that, crypto-nazi, if, be, he,
+Nearest to were are, was, have, had, mid-nineteenth, self-esteem, cliffs, units,
+Nearest to , ., and, the, in, of, was, commemorative, to,
+Nearest to in of, ,, and, after, from, the, to, .,
+Nearest to first when, ile, after, second, liberians, embroideries, rangers, kj,
+Nearest to his their, 's, her, him, he, its, ref, kills,
+Nearest to is was, are, has, became, borders, be, contains, schleswig,
+Nearest to which that, where, but, while, neri, by, only, who,
+Nearest to '' :, ``, called, i, ?, you, wrote, !,
+Nearest to their his, its, her, them, both, 's, order, spd,
+Nearest to as mawali, ebony, mr., marvellous, publisher, inoki, mogadishu, movement,
+Nearest to with and, hoisted, 1678, acrobatics, meaningful, kotlina, one-man, into,
+Nearest to ) see, 1558., seventeenth-century, commandments, innuendo, castile, obey, 61.5,
+Nearest to city area, northern, region, territory, west, part, centre, capital,
+Nearest to . ,, of, in, the, and, abugidas, united, ;,
+Average loss in step 72000: 3.275010
+Average loss in step 74000: 3.267736
+Average loss in step 76000: 3.277993
+Average loss in step 78000: 3.263019
+Average loss in step 80000: 3.243679
+Nearest to the a, in, ,, its, and, ., an, annan,
+Nearest to it only, this, an, priest, also, that, be, then,
+Nearest to were are, was, lejeune, had, being, misunderstandings, revitalize, |oct_rec_lo_°c,
+Nearest to , ., and, in, the, ), (, was, 21,
+Nearest to in on, ,, the, of, and, from, by, during,
+Nearest to first when, ailing, before, annexationists, rangers, naismith, encouraging, diao,
+Nearest to his her, their, him, he, 's, its, moray, merit,
+Nearest to is was, are, has, area, 1., railroad, connecting, became,
+Nearest to which that, only, where, manning, originated, ., and, focus,
+Nearest to '' ``, or, called, entail, integer, sprites, !, approached,
+Nearest to their his, them, her, its, these, they, other, or,
+Nearest to as elba, alcoa, vassar, zaanstad, and, pendleton, wanda, condom,
+Nearest to with on, and, was, for, a, by, had, in,
+Nearest to ) (, ,, –, or, re-united, 1558., m, 50,
+Nearest to city area, northern, region, located, west, centre, putting, country,
+Nearest to . ,, and, ;, the, in, where, to, which,
+Average loss in step 82000: 3.283425
+Average loss in step 84000: 3.232329
+Average loss in step 86000: 3.264910
+Average loss in step 88000: 3.244282
+Average loss in step 90000: 3.267509
+Nearest to the a, ,, and, ., this, an, these, munich,
+Nearest to it this, what, that, not, they, she, if, even,
+Nearest to were are, was, had, many, have, other, people, be,
+Nearest to , ., and, in, of, the, use, are, institutions,
+Nearest to in ,, and, when, throughout, on, early, during, rounds,
+Nearest to first last, second, during, following, later, after, before, throughout,
+Nearest to his 's, later, him, her, died, kills, savonarola, efforts,
+Nearest to is was, are, can, lyme, has, surged, substances, diminution,
+Nearest to which that, and, ., where, or, hemorrhage, to, criticism,
+Nearest to '' ``, !, called, word, tdi, name, wrote, we,
+Nearest to their them, its, various, other, together, these, some, unwelcome,
+Nearest to as called, halo, aqueous, shoreline, charming, armament, bastions, up-and-coming,
+Nearest to with between, albisaurus, insoluble, viljoen, wangari, had, into, hinge,
+Nearest to ) (, see, organisations, 55, welk, re-united, 61, co-starring,
+Nearest to city country, area, centre, region, part, mayor, located, park,
+Nearest to . ,, and, of, :, the, to, which, use,
+Average loss in step 92000: 3.248008
+Average loss in step 94000: 3.242698
+Average loss in step 96000: 3.256586
+Average loss in step 98000: 3.244462
+Average loss in step 100000: 3.234914
+Nearest to the a, 's, an, its, in, ., humid, freighter,
+Nearest to it this, that, if, not, what, so, sx-64, she,
+Nearest to were are, had, was, is, lejeune, two, have, accountability,
+Nearest to , ., in, ivory, and, of, 9, aleph, the,
+Nearest to in ,, of, and, the, to, ., majority, during,
+Nearest to first last, same, second, child, won, later, lac, occurrence,
+Nearest to his him, her, their, 's, them, its, fidel, he,
+Nearest to is was, has, are, became, can, were, had, lyme,
+Nearest to which that, where, iho, by, landmarks, numa, criticism, who,
+Nearest to '' called, (, ``, !, juventus, word, exploding, ),
+Nearest to their its, them, his, they, these, other, larger-scale, both,
+Nearest to as a, well, affluence, described, huyton, insurrections, dzayer, claus,
+Nearest to with between, into, or, insoluble, had, very, and, each,
+Nearest to ) see, doris, or, '', ``, called, suspension, tutored,
+Nearest to city country, refute, mayor, airport, spontaneity, town, underestimate, location,
+Nearest to . ,, that, of, and, to, the, for, in,
+--->Ran skip gram algorithm
+Fitting embeddings to TSNE, this can take some time
+Pruning the Tsne embeddings
+Out of  1000 samples  371 were selected by pruning
+
+###For the 2D plot refer the code

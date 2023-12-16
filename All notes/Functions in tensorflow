@@ -1,0 +1,8 @@
+np.ndarray(shape, dtype)
+collections.deque(maxlen)
+_, l = session.run([optimizer, loss], feed_dict)
+TSNE(perplexity, n_components, init, n_iter)
+tf.keras.layers.Flatten(input_shape=())
+tf.keras.layers.Dense(int, activation)
+tf.keras.layers.Dropout(int)
+tf.keras.layers.Dense(10)

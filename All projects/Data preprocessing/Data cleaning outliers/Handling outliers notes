@@ -1,0 +1,79 @@
+First question to ask yourself:
+Are outliers and Noise the same?
+
+Outliers: An Outlier is that observation which is significantly different from all other observations.
+Anomalies: A false data point made by different processes than the rest of the data
+
+Outliers are sometimes helpful
+
+Deletion of outliers is not always healthy unless and until you analyze the data
+
+Outliers affect : mean, standard deviation, range
+Outliers doesnt affect : Median, IQR
+
+Drop an outlier if:
+1) If you are sure its wrong
+2) You have a lot of data in hand
+3) You have an option to go back
+
+Dont drop an outlier if:
+1) Your results are critical
+2) You have a lot of outliers (around 25 percent or so)
+
+Outlier detection: A data point significantly off the average and, depending on the goal, either removing or resolving them from the analysis to prevent skewing is known as outlier detection.
+
+Outliers are caused by:
+1) Intentional(dummy outliers are created to test detection models)
+2) Data processing errors(Data manipulation or data set unintended mutations)
+3) Sampling errors(extracting or mixing data from wrong or various sources)
+4) Natural(not an error but novelties the data)
+5) Data entry error(Human error)
+
+
+Different ways to treat an outlier
+
+1) Trimming
+- Fastest way
+- Makes the dataset thin if many outliers are present
+
+2) Capping
+- Consider all data points above a threshold value as outliers
+- Capping number: no of outliers hence found
+
+3) Considering them as missing values
+
+4) Discretization
+- Making groups. Considering all outliers in a separate group and forcing them to behave the way other groups do
+
+
+Detecting outliers
+
+1) Normal distributions
+- Here use empirical normal distribution formulas, ex: mean+or-3*stddeviation beyond which all are outliers
+
+2) Skewed distributions
+- Use Inter - Quartile Range(IQR) approximity rule
+
+Important methods to detect outliers are:
+1) Z-score
+2) IQR
+3) DBSCAN : Density Based Spatial Clustering Application with Noise
+- Mahalanobis distance method(for multivariate outliers), Box and whishker or box plot - B Tukeys method
+4) LOF    : Local Outlier Factor
+5) one-class SVM
+6) PyCaret
+7) PyOD
+8) Prophet
+9) 
+
+-SciPy and Numpy are used to visualize
+
+
+
+
+
+
+
+
+
+

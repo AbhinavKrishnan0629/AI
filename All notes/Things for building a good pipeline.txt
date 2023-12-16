@@ -1,0 +1,3 @@
+1) always try to scale the data
+2) check for spelling errors in user input
+3) make sure that training set and test set have the same columns or both are in same shape
