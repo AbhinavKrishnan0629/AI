@@ -70,7 +70,12 @@ Important methods to detect outliers are:
 
 
 
+mean = sum(values) / len(values)
+differences = [(value - mean)**2 for value in values]
+sum_of_differences = sum(differences)
+standard_deviation = (sum_of_differences / (len(values) - 1)) ** 0.5
 
+print(standard_deviation)
 
 
 
