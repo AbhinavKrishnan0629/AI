@@ -1,0 +1,38 @@
+Time series: Stationary and Non stationary
+
+Stationary: observations like mean and variance are consistant over time and do not depend on time
+
+Stationary process: A process that generates a stationary series of observations
+Stationary model  : A model that describes stationary series of observations
+Trend stationary  : A time series that doesnt exhibit a trend
+Season stationary : A time series that doesnt exhibit seasonality
+Strictly stationary
+
+Generally make your time series stationary
+Its easier for models to work with stationary time series
+Remove trend and seasonality from time series
+
+Its advised to treat properties of time series being stationary or not as another piece of information for feature engineering
+
+
+Methods to check for stationarity
+1) Look at plots: visually check for trends and seasonality
+2) Summary statistics: you can review the summary statistics for your data for seasons or random partitions and check for obvious or large differences
+3) Statistical tests
+
+Augmented Dicky Fuller test(Unit root test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
