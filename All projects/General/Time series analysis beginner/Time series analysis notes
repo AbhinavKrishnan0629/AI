@@ -21,6 +21,8 @@ Methods to check for stationarity
 3) Statistical tests
 
 Augmented Dicky Fuller test(Unit root test)
+It determines how strongly a time series is affected by trend
+It uses an autoregressive model and optimizes an information criterion over different lag values
 
 
 
