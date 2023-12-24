@@ -25,6 +25,16 @@ It determines how strongly a time series is affected by trend
 It uses an autoregressive model and optimizes an information criterion over different lag values
 
 
+Making the time series stationary:
+->if there is a positive general trend, then use transformation like log, square root, cube root
+->Aggregation, taking average over time like monthly or yearly average
+->Smoothing: taking rolling means
+->Polynomial fitting: Fit a regression model
+
+Eliminating trend and seasonality:
+->Differencing: taking difference with a particular time lag
+->Decomposition: modeling both trend and seasonality and removing them from model
+
 
 
 
