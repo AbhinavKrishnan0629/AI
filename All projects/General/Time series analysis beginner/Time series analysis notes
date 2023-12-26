@@ -37,8 +37,26 @@ Eliminating trend and seasonality:
 
 
 
+ARIMA model
+parameters:
+p -> Number of auto regressive terms its dependent on
+q -> Number of moving average terms
+d -> Number of nonseasonal differences
+
+p, q are determined by two graphs: ACF and PACF
+
+ACF(Autocorrelation Function)
+Correlation of the TS with a lagged version of itself
+
+PACF(Partial Autocorrelation Function)
 
 
+p -> lag value where pacf plot first crosses the upper confidence level
+q -> lag value where acf plot first crosses the upper confidence level
+
+RSS value: Residual Sum of Squares
+RSE value: Residual Standard Error
+RMSE value: Root Mean Square Error
 
 
 
