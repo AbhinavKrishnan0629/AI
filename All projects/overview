@@ -25,7 +25,7 @@ NLP Large models (GPT 4, BERT, ELMO, RoBERTa, T5, ALBERT, XLNet, MobileBERT, CTR
 CV Large models (SIFT, SURF, Viola Jones, Eigen faces using PCA, Lucas Kanade, Kalman filter, Mean shift,
                   Adaptive thresholding, Graph cut, YOLO)
 
-(1 algorithm per week, in total this would take 70 weeks = 17 months = 1 year 5 months)
+(2 algorithm per week, in total this would take 35 weeks = 9 months, buffer 2 months for nlp and cv)
 
 Phases
 ------
@@ -42,19 +42,19 @@ data cleaning
 data cleaning outliers
 
 time series analysis with python
-PCA
 
 session 3.1 EDA
 EDA to prediction dietanic
 
-wavelet transform
-
 Plant pathology
 Poverty prediction
+taxi fare prediction
 
 time series indepth projects
 
 self driving bike
+
+buddy
 
 pdf shortener, reader, explainer
 

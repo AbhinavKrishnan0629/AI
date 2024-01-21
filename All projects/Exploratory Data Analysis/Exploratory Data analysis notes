@@ -1,0 +1,7 @@
+def: discover patterns, spot anomalies, test hypothesis, check assumptions
+
+
+steps:
+
+1) Read the data head columns and first 10 rows
+2) Understand the shape, columns and data types
