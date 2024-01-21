@@ -5,3 +5,4 @@ steps:
 
 1) Read the data head columns and first 10 rows
 2) Understand the shape, columns and data types
+3) Identify attribute type
