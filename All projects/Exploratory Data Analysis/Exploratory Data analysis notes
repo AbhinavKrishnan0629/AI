@@ -9,4 +9,7 @@ steps:
 4) Print index of all value counts of each column
 5) describe each column and find out whether each column in categorical or continuous
 6) print categorical count values of categorical attributes
-7) 
+7) identify missing values
+8) convert all "." symbol to nan, None values to nan, missing values to nan
+9) convert all numerical features either to float or to int, note: it has to be uniform
+10) 
