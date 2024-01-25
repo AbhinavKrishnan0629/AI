@@ -12,4 +12,69 @@ steps:
 7) identify missing values
 8) convert all "." symbol to nan, None values to nan, missing values to nan
 9) convert all numerical features either to float or to int, note: it has to be uniform
-10) 
+10) print mean, variance, std
+11) plot kdeplot from seaborn to find whether two columns are closely related or not
+12) If two columns have similar mean, variance, std, min, max etc then that may conclude that they are 
+    closely related.
+13) kurtosis method to measure peakedness of the data
+
+
+
+
+
+
+Kurtosis is a method used to find outliers in data
+
+platykurtic(thin tails, kurtosis value is close to 3)
+mesokurtic(medium tails, kurtosis value is less than 3)
+leptokurtic(fat tails, kurtosis value is greater than 3)
+
+If kurtosis value is extremely large, then that shows a possibility for outliers
+
+Finding 25, 50 and 75 quartile range
+
+Inter Quartile Range(IQR) is a measure of variability, it is the distance between the first
+and third quartile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
