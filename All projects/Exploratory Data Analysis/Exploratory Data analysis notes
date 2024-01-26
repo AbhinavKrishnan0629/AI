@@ -36,6 +36,15 @@ Finding 25, 50 and 75 quartile range
 Inter Quartile Range(IQR) is a measure of variability, it is the distance between the first
 and third quartile
 
+Correlation is the measure of strength and direction of relationship between a dependent and
+an independent feature
+
+Pearson correlation coefficient p(x, y) = covariance(x, y)/(std(x) * std(y))
+
+it varies from -1 to 1
+
+positive value: direct relationship
+negative value: Indirect relationship
 
 
 
