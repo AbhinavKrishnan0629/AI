@@ -1,0 +1,9 @@
+#We are using efficientnet model
+
+1) Import(os, numpy, pandas, matplotlib, random, seaborn, tensorflow, tensorflow.keras.backend, optimizers, hashlib, plotly, %matplotlib inline, warnings)
+
+2) Seed everything
+
+3) initialize tpu
+
+4) 
