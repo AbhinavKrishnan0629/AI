@@ -6,4 +6,6 @@
 
 3) initialize tpu
 
-4) 
+4) import data(train_df, test_df, train images, test images, columns)
+
+5) EDA(value_counts of each column, 

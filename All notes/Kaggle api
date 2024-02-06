@@ -1,0 +1,7 @@
+pip install kaggle
+
+go to kaggle profile
+create api token
+
+upload that token json file to file where we are importing dataset
+
