@@ -8,4 +8,11 @@
 
 4) import data(train_df, test_df, train images, test images, columns)
 
-5) EDA(value_counts of each column, 
+5) EDA(value_counts of each column)
+
+6) calculate hash(popular hashing, MD5, SHA, a-hash, p-hash, d-hash, w-hash)
+-DCT : Discrete Cosine Transformation
+
+7) meta formation(image_id, dataset, hash, rgb(min, max), format, mode)
+
+----- one session dumped: ("PlantPathology1.db")
